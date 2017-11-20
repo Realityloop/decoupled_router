@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\jsonapi\Functional;
+namespace Drupal\Tests\decoupled_router\Functional;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Language\Language;
@@ -9,7 +9,7 @@ use Drupal\redirect\Entity\Redirect;
 use Drupal\Tests\BrowserTestBase;
 
 /**
- * @group jsonapi
+ * @group decoupled_router
  */
 class DecoupledRouterFunctionalTest extends BrowserTestBase {
 
