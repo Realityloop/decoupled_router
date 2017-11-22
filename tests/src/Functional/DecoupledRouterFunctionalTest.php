@@ -112,7 +112,7 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
     $make_assertions = function ($path, DecoupledRouterFunctionalTest $test) {
       $res = $test->drupalGet(
         Url::fromRoute('decoupled_router.path_translation'),
-        ['query' => ['path' => $path]]
+        ['query' => ['path' => Url::fromUserInput($path)->toString()]]
       );
       $test->assertSession()->statusCodeEquals(200);
       $output = Json::decode($res);
