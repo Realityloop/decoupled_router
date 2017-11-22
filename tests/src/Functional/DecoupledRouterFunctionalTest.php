@@ -121,14 +121,16 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
       $test->assertSame('node--article', $output['jsonapi']['resourceName']);
       $test->assertStringEndsWith('/jsonapi/node/article/' . $test->nodes[0]->uuid(), $output['jsonapi']['individual']);
     };
+    $parts = parse_url(Url::fromRoute('<front>', [], ['absolute' => TRUE])->toString());
+    $base_path = $parts['path'];
     // Test cases:
     $test_cases = [
       // 1. Test negotiation by system path for /node/1 -> /node--0.
-      'internal:/node/1',
+      $base_path . 'node/1',
       // 2. Test negotiation by alias for /node--0.
-      'internal:/node--0',
+      $base_path . 'node--0',
       // 3. Test negotiation by multiple redirects for /bar -> /foo -> /node--0.
-      'internal:/bar',
+      $base_path . 'bar',
     ];
     array_walk($test_cases, function ($test_case) use ($make_assertions) {
       $make_assertions($test_case, $this);
