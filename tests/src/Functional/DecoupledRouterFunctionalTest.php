@@ -4,6 +4,7 @@ namespace Drupal\Tests\decoupled_router\Functional;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Language\Language;
+use Drupal\Core\Url;
 use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\redirect\Entity\Redirect;
 use Drupal\Tests\BrowserTestBase;
@@ -109,9 +110,10 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
     // This is not build with data providers to avoid rebuilding the environment
     // each test.
     $make_assertions = function ($path, DecoupledRouterFunctionalTest $test) {
-      $res = $test->drupalGet('router/translate-path', [
-        'query' => ['path' => $path],
-      ]);
+      $res = $test->drupalGet(
+        Url::fromRoute('decoupled_router.path_translation'),
+        ['query' => ['path' => $path]]
+      );
       $test->assertSession()->statusCodeEquals(200);
       $output = Json::decode($res);
       $test->assertStringEndsWith('/node--0', $output['resolved']);
