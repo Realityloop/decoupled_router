@@ -124,11 +124,11 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
     // Test cases:
     $test_cases = [
       // 1. Test negotiation by system path for /node/1 -> /node--0.
-      'base:/node/1',
+      'internal:/node/1',
       // 2. Test negotiation by alias for /node--0.
-      'base:/node--0',
+      'internal:/node--0',
       // 3. Test negotiation by multiple redirects for /bar -> /foo -> /node--0.
-      'base:/bar',
+      'internal:/bar',
     ];
     array_walk($test_cases, function ($test_case) use ($make_assertions) {
       $make_assertions($test_case, $this);
