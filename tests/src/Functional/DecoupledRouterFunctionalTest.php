@@ -6,7 +6,6 @@ use Drupal\Component\Serialization\Json;
 use Drupal\Core\Language\Language;
 use Drupal\Core\Url;
 use Drupal\language\Entity\ConfigurableLanguage;
-use Drupal\node\Entity\Node;
 use Drupal\redirect\Entity\Redirect;
 use Drupal\Tests\BrowserTestBase;
 
@@ -113,7 +112,7 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
     $make_assertions = function ($path, DecoupledRouterFunctionalTest $test) {
       $res = $test->drupalGet(
         Url::fromRoute('decoupled_router.path_translation'),
-        ['query' => ['path' => Url::fromUserInput($path)->toString()]]
+        ['query' => ['path' => Url::fromUri($path)->toString()]]
       );
       $test->assertSession()->statusCodeEquals(200);
       $output = Json::decode($res);
@@ -122,17 +121,14 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
       $test->assertSame('node--article', $output['jsonapi']['resourceName']);
       $test->assertStringEndsWith('/jsonapi/node/article/' . $test->nodes[0]->uuid(), $output['jsonapi']['individual']);
     };
-    // Try to guess the prefix in case the test runner is in a subdir.
-    $node_url = Node::load(1)->toUrl();
-    $base_path = preg_replace('@/node--0$@', '', $node_url);
     // Test cases:
     $test_cases = [
       // 1. Test negotiation by system path for /node/1 -> /node--0.
-      $base_path . '/node/1',
+      'base:/node/1',
       // 2. Test negotiation by alias for /node--0.
-      $base_path . '/node--0',
+      'base:/node--0',
       // 3. Test negotiation by multiple redirects for /bar -> /foo -> /node--0.
-      $base_path . '/bar',
+      'base:/bar',
     ];
     array_walk($test_cases, function ($test_case) use ($make_assertions) {
       $make_assertions($test_case, $this);
