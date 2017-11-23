@@ -118,6 +118,7 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
     // This is not build with data providers to avoid rebuilding the environment
     // each test.
     $make_assertions = function ($path, DecoupledRouterFunctionalTest $test) {
+      debug(Url::fromUserInput($path)->toString());
       $res = $test->drupalGet(
         Url::fromRoute('decoupled_router.path_translation'),
         ['query' => ['path' => Url::fromUserInput($path)->toString()]]
