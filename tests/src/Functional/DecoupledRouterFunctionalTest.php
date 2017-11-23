@@ -9,6 +9,8 @@ use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\redirect\Entity\Redirect;
 use Drupal\Tests\BrowserTestBase;
 
+const DRUPAL_CI_BASE_URL = 'http://localhost/subdir';
+
 /**
  * Test class.
  *
@@ -127,7 +129,7 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
       $test->assertSame('node--article', $output['jsonapi']['resourceName']);
       $test->assertStringEndsWith('/jsonapi/node/article/' . $test->nodes[0]->uuid(), $output['jsonapi']['individual']);
     };
-    $parts = parse_url(getenv('SIMPLETEST_BASE_URL'));
+    $parts = parse_url(getenv('SIMPLETEST_BASE_URL') ?: DRUPAL_CI_BASE_URL);
     $base_path = empty($parts['path']) ? '/' : $parts['path'];
     // Test cases:
     $test_cases = [
