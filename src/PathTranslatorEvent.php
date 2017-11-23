@@ -2,11 +2,13 @@
 
 namespace Drupal\decoupled_router;
 
-use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
+/**
+ * Path translation event.
+ */
 class PathTranslatorEvent extends GetResponseEvent {
 
   const TRANSLATE = 'decoupled_router.translate_path';

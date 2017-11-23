@@ -5,15 +5,16 @@ namespace Drupal\decoupled_router\Controller;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Cache\CacheableResponse;
 use Drupal\Core\Controller\ControllerBase;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\decoupled_router\PathTranslatorEvent;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
+/**
+ * Controller that receives the path to inspect.
+ */
 class PathTranslator extends ControllerBase {
 
   /**
@@ -53,6 +54,9 @@ class PathTranslator extends ControllerBase {
     );
   }
 
+  /**
+   * Responds with all the information about the path.
+   */
   public function translate(Request $request) {
     $path = $request->query->get('path');
     if (!$path) {
@@ -83,4 +87,5 @@ class PathTranslator extends ControllerBase {
     $response->getCacheableMetadata()->addCacheContexts(['url.query_args:path']);
     return $response;
   }
+
 }

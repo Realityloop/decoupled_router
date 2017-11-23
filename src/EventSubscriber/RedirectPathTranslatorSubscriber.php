@@ -6,6 +6,9 @@ use Drupal\Core\GeneratedUrl;
 use Drupal\Core\Url;
 use Drupal\decoupled_router\PathTranslatorEvent;
 
+/**
+ * Event subscriber that processes a path translation with the redirect info.
+ */
 class RedirectPathTranslatorSubscriber extends RouterPathTranslatorSubscriber {
 
   /**
@@ -52,7 +55,7 @@ class RedirectPathTranslatorSubscriber extends RouterPathTranslatorSubscriber {
     // At this point we should be pointing to a system route or path alias.
     $event->setPath($destination);
 
-    // Now call the route level
+    // Now call the route level.
     parent::onPathTranslation($event);
 
     // If there is a response object, add the cacheability metadata necessary

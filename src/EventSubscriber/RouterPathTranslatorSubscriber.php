@@ -16,6 +16,9 @@ use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
 use Symfony\Component\Routing\Route;
 
+/**
+ * Event subscriber that processes a path translation with the router info.
+ */
 class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
   /**
    * The service container.
@@ -64,6 +67,9 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
     $this->moduleHandler = $module_handler;
   }
 
+  /**
+   * Processes a path translation request.
+   */
   public function onPathTranslation(PathTranslatorEvent $event) {
     $path = $event->getPath();
     try {
@@ -154,7 +160,7 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
    * @param \Symfony\Component\Routing\Route $route
    *   The route.
    *
-   * @return string|NULL
+   * @return string|null
    *   The entity type ID or NULL if not found.
    */
   protected function findEntityTypeFromRoute(Route $route) {
