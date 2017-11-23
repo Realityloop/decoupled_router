@@ -57,7 +57,7 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
    *   The logger.
    * @param \Symfony\Component\Routing\Matcher\UrlMatcherInterface $router
    *   The router.
-   * @param \Drupal\Core\Extension\ModuleHandlerInterface
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
    *   The module handler.
    */
   public function __construct(ContainerInterface $container, LoggerInterface $logger, UrlMatcherInterface $router, ModuleHandlerInterface $module_handler) {

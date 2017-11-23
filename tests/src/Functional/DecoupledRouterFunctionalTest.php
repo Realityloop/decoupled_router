@@ -11,16 +11,22 @@ use Drupal\Tests\BrowserTestBase;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
+ * Test class.
+ *
  * @group decoupled_router
  */
 class DecoupledRouterFunctionalTest extends BrowserTestBase {
 
   /**
+   * The user.
+   *
    * @var \Drupal\user\Entity\User
    */
   protected $user;
 
   /**
+   * The nodes.
+   *
    * @var \Drupal\node\Entity\Node[]
    */
   protected $nodes = [];
@@ -145,6 +151,7 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
    */
   protected function introspectPath() {
     $request = Request::createFromGlobals();
+
     // Create base URL.
     $base_root = $request->getSchemeAndHttpHost();
     $base_url = $base_root;

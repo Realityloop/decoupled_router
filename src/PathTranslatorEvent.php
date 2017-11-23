@@ -24,9 +24,13 @@ class PathTranslatorEvent extends GetResponseEvent {
    * PathTranslatorEvent constructor.
    *
    * @param \Symfony\Component\HttpKernel\HttpKernelInterface $kernel
+   *   The kernel.
    * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The current request.
    * @param int $requestType
+   *   The type of request: master or subrequest.
    * @param string $path
+   *   The path to process.
    */
   public function __construct(HttpKernelInterface $kernel, Request $request, $requestType, $path) {
     parent::__construct($kernel, $request, $requestType);
@@ -37,6 +41,7 @@ class PathTranslatorEvent extends GetResponseEvent {
    * Get the path.
    *
    * @return string
+   *   The path.
    */
   public function getPath() {
     return $this->path;
@@ -46,6 +51,7 @@ class PathTranslatorEvent extends GetResponseEvent {
    * Set the path.
    *
    * @param string $path
+   *   The path.
    */
   public function setPath($path) {
     $this->path = $path;
