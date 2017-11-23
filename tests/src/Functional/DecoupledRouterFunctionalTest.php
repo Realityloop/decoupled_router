@@ -8,7 +8,6 @@ use Drupal\Core\Url;
 use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\redirect\Entity\Redirect;
 use Drupal\Tests\BrowserTestBase;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Test class.
@@ -128,7 +127,8 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
       $test->assertSame('node--article', $output['jsonapi']['resourceName']);
       $test->assertStringEndsWith('/jsonapi/node/article/' . $test->nodes[0]->uuid(), $output['jsonapi']['individual']);
     };
-    list(,, $base_path) = $this->introspectPath();
+    $parts = parse_url(getenv('SIMPLETEST_BASE_URL'));
+    $base_path = empty($parts['path']) ? '/' : $parts['path'];
     // Test cases:
     $test_cases = [
       // 1. Test negotiation by system path for /node/1 -> /node--0.
@@ -141,41 +141,6 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
     array_walk($test_cases, function ($test_case) use ($make_assertions) {
       $make_assertions($test_case, $this);
     });
-  }
-
-  /**
-   * Introspects the globals to get information about the base path.
-   *
-   * @return array
-   *   The base_root, the base_url and the base_path.
-   */
-  protected function introspectPath() {
-    $request = Request::createFromGlobals();
-
-    // Create base URL.
-    $base_root = $request->getSchemeAndHttpHost();
-    $base_url = $base_root;
-
-    // For a request URI of '/index.php/foo', $_SERVER['SCRIPT_NAME'] is
-    // '/index.php', whereas $_SERVER['PHP_SELF'] is '/index.php/foo'.
-    if ($dir = rtrim(dirname($request->server->get('SCRIPT_NAME')), '\/')) {
-      // Remove "core" directory if present, allowing install.php,
-      // authorize.php, and others to auto-detect a base path.
-      $core_position = strrpos($dir, '/core');
-      if ($core_position !== FALSE && strlen($dir) - 5 == $core_position) {
-        $base_path = substr($dir, 0, $core_position);
-      }
-      else {
-        $base_path = $dir;
-      }
-      $base_url .= $base_path;
-      $base_path .= '/';
-    }
-    else {
-      $base_path = '/';
-    }
-
-    return [$base_root, $base_url, $base_path];
   }
 
 }
