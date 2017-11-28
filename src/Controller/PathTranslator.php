@@ -59,7 +59,7 @@ class PathTranslator extends ControllerBase {
    */
   public function translate(Request $request) {
     $path = $request->query->get('path');
-    if (!$path) {
+    if (empty($path)) {
       throw new NotFoundHttpException('Unable to translate empty path. Please send a ?path query string parameter with your request.');
     }
     // Now that we have the path, let's fire an event for translations.

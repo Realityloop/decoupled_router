@@ -8,3 +8,4 @@ decoupled_router.path_translation:
     _auth: ['basic_auth', 'cookie', 'oauth2']
   requirements:
     _permission: 'access content'
+    _format: json

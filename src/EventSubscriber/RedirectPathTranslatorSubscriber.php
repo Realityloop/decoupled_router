@@ -25,6 +25,7 @@ class RedirectPathTranslatorSubscriber extends RouterPathTranslatorSubscriber {
     $destination = $event->getPath();
     $traced_urls = [];
     while (TRUE) {
+      $destination = $this->cleanSubdirInPath($destination, $event->getRequest());
       // Find if there is a redirect for this path.
       $results = $redirect_storage
         ->getQuery()

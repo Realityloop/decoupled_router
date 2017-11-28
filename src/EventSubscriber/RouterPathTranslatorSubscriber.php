@@ -11,6 +11,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
@@ -72,6 +73,7 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
    */
   public function onPathTranslation(PathTranslatorEvent $event) {
     $path = $event->getPath();
+    $path = $this->cleanSubdirInPath($path, $event->getRequest());
     try {
       $match_info = $this->router->match($path);
     }
@@ -179,4 +181,21 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
     }, NULL);
   }
 
+  /**
+   * Removes the subdir prefix from the path.
+   *
+   * @param $path
+   *   The path that can contain the subdir prefix.
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request to extract the path prefix from.
+   *
+   * @return string
+   *   The clean path.
+   */
+  protected function cleanSubdirInPath($path, Request $request) {
+    // Remove any possible leading subdir information in case Drupal is
+    // installed under http://example.com/d8/index.php
+    $regexp = preg_quote($request->getBasePath(), '/');
+    return preg_replace(sprintf('/^%s/', $regexp), '', $path);
+  }
 }

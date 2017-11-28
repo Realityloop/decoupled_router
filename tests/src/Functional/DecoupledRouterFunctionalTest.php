@@ -120,7 +120,10 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
     $make_assertions = function ($path, DecoupledRouterFunctionalTest $test) {
       $res = $test->drupalGet(
         Url::fromRoute('decoupled_router.path_translation'),
-        ['query' => ['path' => Url::fromUserInput($path)->toString()]]
+        ['query' => [
+          'path' => $path,
+          '_format' => 'json',
+        ]]
       );
       $test->assertSession()->statusCodeEquals(200);
       $output = Json::decode($res);
@@ -134,11 +137,11 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
     // Test cases:
     $test_cases = [
       // 1. Test negotiation by system path for /node/1 -> /node--0.
-      $base_path . 'node/1',
+      $base_path . '/node/1',
       // 2. Test negotiation by alias for /node--0.
-      $base_path . 'node--0',
+      $base_path . '/node--0',
       // 3. Test negotiation by multiple redirects for /bar -> /foo -> /node--0.
-      $base_path . 'bar',
+      $base_path . '/bar',
     ];
     array_walk($test_cases, function ($test_case) use ($make_assertions) {
       $make_assertions($test_case, $this);
