@@ -111,6 +111,7 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
         'bundle' => $entity->bundle(),
         'id' => $entity->id(),
         'uuid' => $entity->uuid(),
+        'label' => $entity->label(),
       ],
     ];
     // If the route is JSON API, it means that JSON API is installed and its
