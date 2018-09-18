@@ -24,6 +24,7 @@ class RedirectPathTranslatorSubscriber extends RouterPathTranslatorSubscriber {
     $redirect_storage = $entity_type_manager->getStorage('redirect');
     $destination = $event->getPath();
     $traced_urls = [];
+    $redirect = NULL;
     while (TRUE) {
       $destination = $this->cleanSubdirInPath($destination, $event->getRequest());
       // Find if there is a redirect for this path.
@@ -55,6 +56,7 @@ class RedirectPathTranslatorSubscriber extends RouterPathTranslatorSubscriber {
     }
     // At this point we should be pointing to a system route or path alias.
     $event->setPath($destination);
+    $event->setRedirect($redirect);
 
     // Now call the route level.
     parent::onPathTranslation($event);

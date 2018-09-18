@@ -21,6 +21,13 @@ class PathTranslatorEvent extends GetResponseEvent {
   protected $path;
 
   /**
+   * The redirect entity, if any.
+   *
+   * @var \Drupal\redirect\Entity\Redirect
+   */
+  protected $redirect;
+
+  /**
    * PathTranslatorEvent constructor.
    *
    * @param \Symfony\Component\HttpKernel\HttpKernelInterface $kernel
@@ -31,10 +38,13 @@ class PathTranslatorEvent extends GetResponseEvent {
    *   The type of request: master or subrequest.
    * @param string $path
    *   The path to process.
+   * @param \Drupal\redirect\Entity\Redirect $redirect
+   *   Indicates if the current path is a redirect
    */
-  public function __construct(HttpKernelInterface $kernel, Request $request, $requestType, $path) {
+  public function __construct(HttpKernelInterface $kernel, Request $request, $requestType, $path, $redirect = NULL) {
     parent::__construct($kernel, $request, $requestType);
     $this->path = $path;
+    $this->redirect = $redirect;
   }
 
   /**
@@ -55,6 +65,26 @@ class PathTranslatorEvent extends GetResponseEvent {
    */
   public function setPath($path) {
     $this->path = $path;
+  }
+
+  /**
+   * Get the redirect from the current path.
+   *
+   * @return \Drupal\redirect\Entity\Redirect
+   *   The redirect entity if it comes from a redirection. NULL otherwise.
+   */
+  public function getRedirect() {
+    return $this->redirect;
+  }
+
+  /**
+   * Set the redirect for the current path.
+   *
+   * @param \Drupal\redirect\Entity\Redirect|NULL $redirect
+   *   The redirect entity if it comes from a redirection.
+   */
+  public function setRedirect($redirect) {
+    $this->redirect = $redirect;
   }
 
 }
