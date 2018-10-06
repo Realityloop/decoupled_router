@@ -124,9 +124,7 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
       $rt_repo = $this->container->get('jsonapi.resource_type.repository');
       $rt = $rt_repo->get($entity_type_id, $entity->bundle());
       $type_name = $rt->getTypeName();
-      $config_factory = $this->container->get('config.factory');
-      $prefix = $config_factory->get('jsonapi_extras.settings')->get('path_prefix');
-      $prefix = $prefix ?: 'jsonapi';
+      $jsonapi_base_path = $this->container->getParameter('jsonapi.base_path');
       $entry_point_url = Url::fromRoute('jsonapi.resource_list', [], ['absolute' => TRUE])->toString(TRUE);
       $individual = Url::fromRoute(
         sprintf('jsonapi.%s.individual', $type_name),
@@ -138,7 +136,8 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
       $output['jsonapi'] = [
         'individual' => $individual->getGeneratedUrl(),
         'resourceName' => $type_name,
-        'pathPrefix' => $prefix,
+        'pathPrefix' => trim($jsonapi_base_path, '/'),
+        'basePath' => $jsonapi_base_path,
         'entryPoint' => $entry_point_url->getGeneratedUrl(),
       ];
     }
