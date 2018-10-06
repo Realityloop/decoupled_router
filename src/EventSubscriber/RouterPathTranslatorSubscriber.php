@@ -73,7 +73,6 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
    */
   public function onPathTranslation(PathTranslatorEvent $event) {
     $path = $event->getPath();
-    $redirect = $event->getRedirect();
     $path = $this->cleanSubdirInPath($path, $event->getRequest());
     try {
       $match_info = $this->router->match($path);
@@ -113,10 +112,8 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
         'id' => $entity->id(),
         'uuid' => $entity->uuid(),
         'label' => $entity->label(),
-        'redirect' => $redirect ? $redirect->getStatusCode() : ''
       ],
     ];
-
     // If the route is JSON API, it means that JSON API is installed and its
     // services can be used.
     if ($this->moduleHandler->moduleExists('jsonapi')) {
