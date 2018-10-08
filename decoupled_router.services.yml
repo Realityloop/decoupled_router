@@ -6,9 +6,13 @@ services:
     class: Drupal\decoupled_router\EventSubscriber\RouterPathTranslatorSubscriber
     arguments: ['@service_container', '@logger.channel.decoupled_router', '@router.no_access_checks', '@module_handler']
     tags:
-      - { name: event_subscriber }
+      -
+        name: event_subscriber
+        priority: 0
   decoupled_router.redirect_path_translator.subscriber:
     class: Drupal\decoupled_router\EventSubscriber\RedirectPathTranslatorSubscriber
-    arguments: ['@service_container', '@logger.channel.decoupled_router', '@router.no_access_checks', '@module_handler']
+    parent: decoupled_router.router_path_translator.subscriber
     tags:
-      - { name: event_subscriber }
+      -
+        name: event_subscriber
+        priority: 10

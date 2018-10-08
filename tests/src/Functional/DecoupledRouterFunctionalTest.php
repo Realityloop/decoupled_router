@@ -6,6 +6,7 @@ use Drupal\Component\Serialization\Json;
 use Drupal\Core\Language\Language;
 use Drupal\Core\Url;
 use Drupal\language\Entity\ConfigurableLanguage;
+use Drupal\node\NodeInterface;
 use Drupal\redirect\Entity\Redirect;
 use Drupal\Tests\BrowserTestBase;
 
@@ -67,17 +68,17 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
       'delete any article content',
     ]);
     $this->createDefaultContent(3);
-    $redirect = Redirect::create(['type' => '301']);
+    $redirect = Redirect::create(['status_code' => '301']);
     $redirect->setSource('/foo');
     $redirect->setRedirect('/node--0');
     $redirect->setLanguage(Language::LANGCODE_NOT_SPECIFIED);
     $redirect->save();
-    $redirect = Redirect::create(['type' => '301']);
+    $redirect = Redirect::create(['status_code' => '301']);
     $redirect->setSource('/bar');
     $redirect->setRedirect('/foo');
     $redirect->setLanguage(Language::LANGCODE_NOT_SPECIFIED);
     $redirect->save();
-    $redirect = Redirect::create(['type' => '301']);
+    $redirect = Redirect::create(['status_code' => '301']);
     $redirect->setSource('/foo--ca');
     $redirect->setRedirect('/node--0--ca');
     $redirect->setLanguage('ca');
@@ -132,8 +133,9 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
       $test->assertSame('node--article', $output['jsonapi']['resourceName']);
       $test->assertStringEndsWith('/jsonapi/node/article/' . $test->nodes[0]->uuid(), $output['jsonapi']['individual']);
     };
-    $parts = parse_url(getenv('SIMPLETEST_BASE_URL') ?: DRUPAL_CI_BASE_URL);
-    $base_path = empty($parts['path']) ? '/' : $parts['path'];
+
+    $base_path = $this->getBasePath();
+
     // Test cases:
     $test_cases = [
       // 1. Test negotiation by system path for /node/1 -> /node--0.
@@ -148,4 +150,18 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
     });
   }
 
+  /**
+   * Computes the base path under which the Drupal managed URLs are available.
+   *
+   * @return string
+   *   The path.
+   */
+  private function getBasePath() {
+    $parts = parse_url(
+      (
+        getenv('SIMPLETEST_BASE_URL') ?: getenv('WEB_HOST')
+      ) ?: DRUPAL_CI_BASE_URL
+    );
+    return empty($parts['path']) ? '/' : $parts['path'];
+  }
 }

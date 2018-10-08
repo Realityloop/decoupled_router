@@ -3,7 +3,9 @@
 namespace Drupal\decoupled_router\EventSubscriber;
 
 use Drupal\Component\Serialization\Json;
-use Drupal\Core\Cache\CacheableResponse;
+use Drupal\Core\Cache\CacheableJsonResponse;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityMalformedException;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
@@ -75,6 +77,11 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
    * Processes a path translation request.
    */
   public function onPathTranslation(PathTranslatorEvent $event) {
+    $response = $event->getResponse();
+    if (!$response instanceof CacheableJsonResponse) {
+      $this->logger->error('Unable to get the response object for the decoupled router event.');
+      return;
+    }
     $path = $event->getPath();
     $path = $this->cleanSubdirInPath($path, $event->getRequest());
     try {
@@ -84,25 +91,39 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
       return;
     }
     catch (MethodNotAllowedException $exception) {
+      $response->setStatusCode(403);
       return;
     }
-    /** @var \Symfony\Component\Routing\Route $route */
-    $route = $match_info[RouteObjectInterface::ROUTE_OBJECT];
-    $entity_type_id = $this->findEntityTypeFromRoute($route);
     /** @var \Drupal\Core\Entity\EntityInterface $entity */
-    if (empty($entity_type_id) || !($entity = $match_info[$entity_type_id])) {
+    /** @var bool $param_uses_uuid */
+    list(
+      $entity,
+      $param_uses_uuid,
+      $route_parameter_entity_key
+    ) = $this->findEntityAndKeys($match_info);
+    if (!$entity) {
       $this->logger->notice('A route has been found but it has no entity information.');
       return;
     }
+    $response->addCacheableDependency($entity);
 
-    $response = CacheableResponse::create();
-
-    $canonical_url = $entity->toUrl('canonical', ['absolute' => TRUE])->toString(TRUE);
-    $route_parameters = $route->getOption('parameters');
-    $param_uses_uuid = strpos($route_parameters[$entity_type_id]['converter'], 'entity_uuid') === FALSE;
+    $entity_type_id = $entity->getEntityTypeId();
+    $canonical_url = NULL;
+    try {
+      $canonical_url = $entity->toUrl('canonical', ['absolute' => TRUE])->toString(TRUE);
+    }
+    catch (EntityMalformedException $e) {
+      $response->setData([
+        'message' => 'Unable to build entity URL.',
+        'details' => 'A valid entity was found but it was impossible to generate a valid canonical URL for it.',
+      ]);
+      $response->setStatusCode(500);
+      watchdog_exception('decoupled_router', $e);
+      return;
+    }
     $entity_param = $param_uses_uuid ? $entity->id() : $entity->uuid();
     $resolved_url = Url::fromRoute($match_info[RouteObjectInterface::ROUTE_NAME], [
-      $entity_type_id => $entity_param,
+      $route_parameter_entity_key => $entity_param,
     ], ['absolute' => TRUE])->toString(TRUE);
     $response->addCacheableDependency($canonical_url);
     $response->addCacheableDependency($resolved_url);
@@ -150,10 +171,57 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
       ];
     }
     $response->addCacheableDependency($entity);
-    $response->setContent(Json::encode($output));
+    $response->setStatusCode(200);
+    $response->setData($output);
 
-    $event->setResponse($response);
     $event->stopPropagation();
+  }
+
+  /**
+   * Get the underlying entity and the type of ID param enhancer for the routes.
+   *
+   * @param array $match_info
+   *   The router match info.
+   *
+   * @return array
+   *   The pair of \Drupal\Core\Entity\EntityInterface and bool with the
+   *   underlying entity and the info weather or not it uses UUID for the param
+   *   enhancement. It also returns the name of the parameter under which the
+   *   entity lives in the route ('node' vs 'entity').
+   */
+  protected function findEntityAndKeys(array $match_info) {
+    $entity = NULL;
+    /** @var \Symfony\Component\Routing\Route $route */
+    $route = $match_info[RouteObjectInterface::ROUTE_OBJECT];
+    $route_parameters = $route->getOption('parameters');
+    $route_parameter_entity_key = 'entity';
+    if (
+      !empty($match_info['entity']) &&
+      $match_info['entity'] instanceof EntityInterface
+    ) {
+      $entity = $match_info['entity'];
+    }
+    else {
+      $entity_type_id = $this->findEntityTypeFromRoute($route);
+      /** @var \Drupal\Core\Entity\EntityInterface $entity */
+      // TODO: $match_info[$entity_type_id] is broken for JSON API 2.x routes.
+      // Now it will be $match_info[$entity_type_id] for core and
+      // $match_info['entity'] for JSON API :-(
+      if (
+        !empty($entity_type_id) &&
+        !empty($match_info[$entity_type_id]) &&
+        $match_info[$entity_type_id] instanceof EntityInterface
+      ) {
+        $route_parameter_entity_key = $entity_type_id;
+        $entity = $match_info[$entity_type_id];
+      }
+    }
+    $param_uses_uuid = strpos(
+      $route_parameters[$route_parameter_entity_key]['converter'],
+      'entity_uuid'
+    ) === FALSE;
+
+    return [$entity, $param_uses_uuid, $route_parameter_entity_key];
   }
 
   /**
