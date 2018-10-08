@@ -5,6 +5,7 @@ namespace Drupal\decoupled_router\EventSubscriber;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Cache\CacheableResponse;
 use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\decoupled_router\PathTranslatorEvent;
 use Psr\Log\LoggerInterface;
@@ -21,6 +22,8 @@ use Symfony\Component\Routing\Route;
  * Event subscriber that processes a path translation with the router info.
  */
 class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
+  use StringTranslationTrait;
+
   /**
    * The service container.
    *
@@ -136,6 +139,14 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
         'pathPrefix' => trim($jsonapi_base_path, '/'),
         'basePath' => $jsonapi_base_path,
         'entryPoint' => $entry_point_url->getGeneratedUrl(),
+      ];
+      $deprecation_message = 'This property has been deprecated and will be removed in the next version of Decoupled Router. Use @alternative instead.';
+      $output['meta'] = [
+        'deprecated' => [
+          'jsonapi.pathPrefix' => $this->t(
+            $deprecation_message, ['@alternative' => 'basePath']
+          ),
+        ],
       ];
     }
     $response->addCacheableDependency($entity);
