@@ -151,6 +151,94 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
   }
 
   /**
+   * Test that unpublished content ist not available
+   */
+  public function testUnpublishedContent() {
+    $values = [
+      'uid' => ['target_id' => $this->user->id()],
+      'type' => 'article',
+      'path' => '/node--unpublished',
+      'title' => $this->getRandomGenerator()->name(),
+      'status' => NodeInterface::NOT_PUBLISHED
+    ];
+    $node = $this->createNode($values);
+
+    $redirect = Redirect::create(['status_code' => '301']);
+    $redirect->setSource('/unp');
+    $redirect->setRedirect('/node--unpublished');
+    $redirect->setLanguage(Language::LANGCODE_NOT_SPECIFIED);
+    $redirect->save();
+
+    // test access via node_id to unpublished content
+    $res = $this->drupalGet(
+      Url::fromRoute('decoupled_router.path_translation'),
+      ['query' => [
+        'path' => '/unp',
+        '_format' => 'json',
+      ]]
+    );
+    $output = Json::decode($res);
+    $this->assertArrayNotHasKey('redirect', $output);
+    $this->assertEquals(
+      [
+        'message' => 'Access denied for entity.',
+        'details' => 'This user does not have access to view the resolved entity. Please authenticate and try again.'
+      ],
+      $output
+    );
+    $this->assertSession()->statusCodeEquals(403);
+
+    // Make sure priviledged users can access the output.
+    $admin_user = $this->drupalCreateUser([
+      'administer nodes',
+      'bypass node access',
+    ]);
+    $this->drupalLogin($admin_user);
+    // test access via node_id to unpublished content
+    $res = $this->drupalGet(
+      Url::fromRoute('decoupled_router.path_translation'),
+      ['query' => [
+        'path' => '/unp',
+        '_format' => 'json',
+      ]]
+    );
+    $output = Json::decode($res);
+    $this->assertSession()->statusCodeEquals(200);
+    $base_path = $this->getBasePath();
+    $expected = [
+      'resolved' => $this->buildUrl($base_path . 'node--unpublished'),
+      'entity' => [
+        'canonical' => $this->buildUrl($base_path . 'node--unpublished'),
+        'type' => 'node',
+        'bundle' => 'article',
+        'id' => $node->id(),
+        'uuid' => $node->uuid(),
+      ],
+      'label' => $node->label(),
+      'jsonapi' => [
+        'individual' => $this->buildUrl($base_path . 'jsonapi/node/article/' . $node->uuid()),
+        'resourceName' => 'node--article',
+        'pathPrefix' => 'jsonapi',
+        'basePath' => '/jsonapi',
+        'entryPoint' => $this->buildUrl($base_path . 'jsonapi'),
+      ],
+      'meta' => [
+        'deprecated' => [
+          'jsonapi.pathPrefix' => 'This property has been deprecated and will be removed in the next version of Decoupled Router. Use basePath instead.',
+        ],
+      ],
+      'redirect' => [
+        [
+          'from' => '/unp',
+          'to' => '/node--unpublished',
+          'status' => 301,
+        ]
+      ],
+    ];
+    $this->assertEquals($expected, $output);
+  }
+
+  /**
    * Computes the base path under which the Drupal managed URLs are available.
    *
    * @return string

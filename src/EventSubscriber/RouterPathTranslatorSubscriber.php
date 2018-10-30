@@ -106,6 +106,16 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
       return;
     }
     $response->addCacheableDependency($entity);
+    $can_view = $entity->access('view', NULL, TRUE);
+    if (!$can_view->isAllowed()) {
+      $response->setData([
+        'message' => 'Access denied for entity.',
+        'details' => 'This user does not have access to view the resolved entity. Please authenticate and try again.'
+      ]);
+      $response->setStatusCode(403);
+      $response->addCacheableDependency($can_view);
+      return;
+    }
 
     $entity_type_id = $entity->getEntityTypeId();
     $canonical_url = NULL;
@@ -127,6 +137,8 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
     ], ['absolute' => TRUE])->toString(TRUE);
     $response->addCacheableDependency($canonical_url);
     $response->addCacheableDependency($resolved_url);
+    $label_accessible = $entity->access('view label', NULL, TRUE);
+    $response->addCacheableDependency($label_accessible);
     $output = [
       'resolved' => $resolved_url->getGeneratedUrl(),
       'entity' => [
@@ -135,9 +147,11 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
         'bundle' => $entity->bundle(),
         'id' => $entity->id(),
         'uuid' => $entity->uuid(),
-        'label' => $entity->label(),
       ],
     ];
+    if ($label_accessible->isAllowed()) {
+      $output['label'] = $entity->label();
+    }
     // If the route is JSON API, it means that JSON API is installed and its
     // services can be used.
     if ($this->moduleHandler->moduleExists('jsonapi')) {
