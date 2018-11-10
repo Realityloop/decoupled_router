@@ -5,5 +5,5 @@ core: 8.x
 package: Web services
 test_dependencies:
   - drupal:path
-  - jsonapi
-  - redirect
+  - jsonapi:jsonapi
+  - redirect:redirect
