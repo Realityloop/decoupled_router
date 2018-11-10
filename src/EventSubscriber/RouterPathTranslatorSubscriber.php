@@ -161,9 +161,10 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
       $type_name = $rt->getTypeName();
       $jsonapi_base_path = $this->container->getParameter('jsonapi.base_path');
       $entry_point_url = Url::fromRoute('jsonapi.resource_list', [], ['absolute' => TRUE])->toString(TRUE);
+      $route_name = sprintf('jsonapi.%s.individual', $type_name);
       $individual = Url::fromRoute(
-        sprintf('jsonapi.%s.individual', $type_name),
-        [$entity_type_id => $entity->uuid()],
+        $route_name,
+        [static::getEntityRouteParameterName($route_name, $entity_type_id) => $entity->uuid()],
         ['absolute' => TRUE]
       )->toString(TRUE);
       $response->addCacheableDependency($entry_point_url);
@@ -236,6 +237,37 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
     ) === FALSE;
 
     return [$entity, $param_uses_uuid, $route_parameter_entity_key];
+  }
+
+  /**
+   * Computes the name of the entity route parameter for JSON API routes.
+   *
+   * @param string $route_name
+   *   A JSON API route name.
+   * @param string $entity_type_id
+   *   The corresponding entity type ID.
+   *
+   * @return string
+   *   Either 'entity' or $entity_type_id.
+   *
+   * @todo Remove this once decoupled_router requires jsonapi >= 8.x-2.0.
+   */
+  protected static function getEntityRouteParameterName($route_name, $entity_type_id) {
+    static $first;
+
+    if (!isset($first)) {
+      $route_parameters = \Drupal::service('router.route_provider')
+        ->getRouteByName($route_name)
+        ->getOption('parameters');
+      $first = isset($route_parameters['entity'])
+        ? 'entity'
+        : $entity_type_id;
+      return $first;
+    }
+
+    return $first === 'entity'
+      ? 'entity'
+      : $entity_type_id;
   }
 
   /**
