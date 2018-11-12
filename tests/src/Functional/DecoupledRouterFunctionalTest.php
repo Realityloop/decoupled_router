@@ -204,11 +204,10 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
     );
     $output = Json::decode($res);
     $this->assertSession()->statusCodeEquals(200);
-    $base_path = $this->getBasePath();
     $expected = [
-      'resolved' => $this->buildUrl($base_path . 'node--unpublished'),
+      'resolved' => $this->buildUrl('/node--unpublished'),
       'entity' => [
-        'canonical' => $this->buildUrl($base_path . 'node--unpublished'),
+        'canonical' => $this->buildUrl('/node--unpublished'),
         'type' => 'node',
         'bundle' => 'article',
         'id' => $node->id(),
@@ -216,11 +215,11 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
       ],
       'label' => $node->label(),
       'jsonapi' => [
-        'individual' => $this->buildUrl($base_path . 'jsonapi/node/article/' . $node->uuid()),
+        'individual' => $this->buildUrl('/jsonapi/node/article/' . $node->uuid()),
         'resourceName' => 'node--article',
         'pathPrefix' => 'jsonapi',
         'basePath' => '/jsonapi',
-        'entryPoint' => $this->buildUrl($base_path . 'jsonapi'),
+        'entryPoint' => $this->buildUrl('/jsonapi'),
       ],
       'meta' => [
         'deprecated' => [
@@ -230,8 +229,8 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
       'redirect' => [
         [
           'from' => '/unp',
-          'to' => '/node--unpublished',
-          'status' => 301,
+          'to' => '/' . trim($this->getBasePath(), '/') . '/node--unpublished',
+          'status' => '301',
         ]
       ],
     ];
