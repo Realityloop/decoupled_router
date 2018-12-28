@@ -4,9 +4,12 @@ namespace Drupal\decoupled_router\EventSubscriber;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Cache\CacheableJsonResponse;
+use Drupal\Core\Cache\CacheableMetadata;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityMalformedException;
 use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\Path\AliasManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\decoupled_router\PathTranslatorEvent;
@@ -55,6 +58,20 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
   protected $moduleHandler;
 
   /**
+   * The config factory
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactory;
+
+  /**
+   * The alias manager
+   *
+   * @var \Drupal\Core\Path\AliasManagerInterface
+   */
+  protected $aliasManager;
+
+  /**
    * RouterPathTranslatorSubscriber constructor.
    *
    * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
@@ -65,12 +82,25 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
    *   The router.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
    *   The module handler.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The config factory
+   * @param \Drupal\Core\Path\AliasManagerInterface $aliasManager
+   *   The alias manager
    */
-  public function __construct(ContainerInterface $container, LoggerInterface $logger, UrlMatcherInterface $router, ModuleHandlerInterface $module_handler) {
+  public function __construct(
+    ContainerInterface $container,
+    LoggerInterface $logger,
+    UrlMatcherInterface $router,
+    ModuleHandlerInterface $module_handler,
+    ConfigFactoryInterface $config_factory,
+    AliasManagerInterface $aliasManager
+  ) {
     $this->container = $container;
     $this->logger = $logger;
     $this->router = $router;
     $this->moduleHandler = $module_handler;
+    $this->configFactory = $config_factory;
+    $this->aliasManager = $aliasManager;
   }
 
   /**
@@ -137,10 +167,16 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
     ], ['absolute' => TRUE])->toString(TRUE);
     $response->addCacheableDependency($canonical_url);
     $response->addCacheableDependency($resolved_url);
+    $is_home_path = $this->resolvedPathIsHomePath($resolved_url->getGeneratedUrl());
+    $response->addCacheableDependency(
+      (new CacheableMetadata())->setCacheContexts(['url.path.is_front'])
+    );
+
     $label_accessible = $entity->access('view label', NULL, TRUE);
     $response->addCacheableDependency($label_accessible);
     $output = [
       'resolved' => $resolved_url->getGeneratedUrl(),
+      'isHomePath' => $is_home_path,
       'entity' => [
         'canonical' => $canonical_url->getGeneratedUrl(),
         'type' => $entity_type_id,
@@ -322,5 +358,22 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
     // installed under http://example.com/d8/index.php
     $regexp = preg_quote($request->getBasePath(), '/');
     return preg_replace(sprintf('/^%s/', $regexp), '', $path);
+  }
+
+  /**
+   * Checks if the resolved path is the home path
+   *
+   * @param string $resolved_path
+   *   The resolved path from the request
+   *
+   * @return bool
+   *   True if the resolved path is the home path, false otherwise
+   */
+  protected function resolvedPathIsHomePath($resolved_path) {
+    $home_path = $this->configFactory->get('system.site')->get('page.front');
+    if($resolved_path === $home_path) {
+      return TRUE;
+    }
+    return $this->aliasManager->getAliasByPath($home_path) === $resolved_path;
   }
 }

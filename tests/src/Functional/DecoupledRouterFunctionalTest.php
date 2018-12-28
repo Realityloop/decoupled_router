@@ -91,6 +91,8 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
    *
    * @param int $num_articles
    *   Number of articles to create.
+   *
+   * @throws \Drupal\Core\Entity\EntityStorageException
    */
   protected function createDefaultContent($num_articles) {
     $random = $this->getRandomGenerator();
@@ -206,6 +208,7 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
     $this->assertSession()->statusCodeEquals(200);
     $expected = [
       'resolved' => $this->buildUrl('/node--unpublished'),
+      'isHomePath' => FALSE,
       'entity' => [
         'canonical' => $this->buildUrl('/node--unpublished'),
         'type' => 'node',
