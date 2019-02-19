@@ -16,3 +16,6 @@ services:
       -
         name: event_subscriber
         priority: 10
+  decoupled_router.cache_invalidation:
+    class: Drupal\decoupled_router\CacheInvalidator
+    arguments: ['@cache_tags.invalidator', '@entity_type.manager']
