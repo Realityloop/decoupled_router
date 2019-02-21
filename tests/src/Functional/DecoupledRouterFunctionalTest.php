@@ -232,7 +232,7 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
       'redirect' => [
         [
           'from' => '/unp',
-          'to' => '/' . trim($this->getBasePath(), '/') . '/node--unpublished',
+          'to' => '/' . implode('/', array_filter([trim($this->getBasePath(), '/'), 'node--unpublished'])),
           'status' => '301',
         ]
       ],
