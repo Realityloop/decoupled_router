@@ -76,8 +76,13 @@ class CacheInvalidator {
   private function getTagsBySourcePath($source_path) {
     $tags = [];
 
-    $parameters = Url::fromUri('internal:' . $source_path)
-      ->getRouteParameters();
+    try {
+      $parameters = Url::fromUri('internal:' . $source_path)
+        ->getRouteParameters();
+    }
+    catch (\UnexpectedValueException $exception) {
+      $parameters = [];
+    }
     if (empty($parameters)) {
       return $tags;
     }
