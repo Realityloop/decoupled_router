@@ -241,6 +241,57 @@ class DecoupledRouterFunctionalTest extends BrowserTestBase {
   }
 
   /**
+   * Test that the home path check is working.
+   */
+  public function testHomPathCheck() {
+
+    // Create front page node.
+    $this->createNode([
+      'uid' => ['target_id' => $this->user->id()],
+      'type' => 'article',
+      'path' => '/node--homepage',
+      'title' => $this->getRandomGenerator()->name(),
+      'status' => NodeInterface::NOT_PUBLISHED,
+    ]);
+
+    // Update front page.
+    \Drupal::configFactory()->getEditable('system.site')
+      ->set('page.front', '/node--homepage')
+      ->save();
+
+    $user = $this->drupalCreateUser(['bypass node access']);
+    $this->drupalLogin($user);
+
+    // Test front page node.
+    $res = $this->drupalGet(
+      Url::fromRoute('decoupled_router.path_translation'),
+      [
+        'query' => [
+          'path' => '/node--homepage',
+          '_format' => 'json',
+        ],
+      ]
+    );
+    $this->assertSession()->statusCodeEquals(200);
+    $output = Json::decode($res);
+    $this->assertTrue($output['isHomePath']);
+
+    // Test non-front page node.
+    $res = $this->drupalGet(
+      Url::fromRoute('decoupled_router.path_translation'),
+      [
+        'query' => [
+          'path' => '/node--1',
+          '_format' => 'json',
+        ],
+      ]
+    );
+    $this->assertSession()->statusCodeEquals(200);
+    $output = Json::decode($res);
+    $this->assertFalse($output['isHomePath']);
+  }
+
+  /**
    * Computes the base path under which the Drupal managed URLs are available.
    *
    * @return string

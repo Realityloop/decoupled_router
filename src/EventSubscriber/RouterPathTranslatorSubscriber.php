@@ -361,19 +361,19 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
   }
 
   /**
-   * Checks if the resolved path is the home path
+   * Checks if the resolved path is the home path.
    *
-   * @param string $resolved_path
-   *   The resolved path from the request
+   * @param string $resolved_url
+   *   The resolved url from the request.
    *
    * @return bool
-   *   True if the resolved path is the home path, false otherwise
+   *   True if the resolved path is the home path, false otherwise.
    */
-  protected function resolvedPathIsHomePath($resolved_path) {
+  protected function resolvedPathIsHomePath($resolved_url) {
     $home_path = $this->configFactory->get('system.site')->get('page.front');
-    if($resolved_path === $home_path) {
-      return TRUE;
-    }
-    return $this->aliasManager->getAliasByPath($home_path) === $resolved_path;
+    $home_url = Url::fromUserInput($home_path, ['absolute' => TRUE])->toString(TRUE)->getGeneratedUrl();
+
+    return $resolved_url === $home_url;
   }
+
 }
