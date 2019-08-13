@@ -16,6 +16,16 @@ class RedirectPathTranslatorSubscriber extends RouterPathTranslatorSubscriber {
   /**
    * {@inheritdoc}
    */
+  public static function getSubscribedEvents() {
+    // We wanna run before the router-based path translator because redirects
+    // naturally act before routing subsystem in Drupal HTTP kernel.
+    $events[PathTranslatorEvent::TRANSLATE][] = ['onPathTranslation', 10];
+    return $events;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function onPathTranslation(PathTranslatorEvent $event) {
     $response = $event->getResponse();
     if (!$response instanceof CacheableJsonResponse) {
