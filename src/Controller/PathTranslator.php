@@ -9,6 +9,7 @@ use Drupal\decoupled_router\PathTranslatorEvent;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
@@ -76,6 +77,9 @@ class PathTranslator extends ControllerBase {
     $response = $event->getResponse();
     $response->headers->add(['Content-Type' => 'application/json']);
     $response->getCacheableMetadata()->addCacheContexts(['url.query_args:path']);
+    if($response->getStatusCode() === Response::HTTP_NOT_FOUND) {
+      $response->getCacheableMetadata()->addCacheTags(['4xx-response']);
+    }
     return $response;
   }
 
