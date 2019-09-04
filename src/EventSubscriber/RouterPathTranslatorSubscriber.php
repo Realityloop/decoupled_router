@@ -327,7 +327,7 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
    *   The entity type ID or NULL if not found.
    */
   protected function findEntityTypeFromRoute(Route $route) {
-    $parameters = $route->getOption('parameters');
+    $parameters = (array) $route->getOption('parameters');
     // Find the entity type for the first parameter that has one.
     return array_reduce($parameters, function ($carry, $parameter) {
       if (!$carry && !empty($parameter['type'])) {
