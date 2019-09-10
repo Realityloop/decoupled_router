@@ -3,6 +3,7 @@
 namespace Drupal\decoupled_router\EventSubscriber;
 
 use Drupal\Component\Serialization\Json;
+use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Cache\CacheableJsonResponse;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -118,6 +119,14 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
       $match_info = $this->router->match($path);
     }
     catch (ResourceNotFoundException $exception) {
+      // If URL is external, we won't perform checks for content in Drupal,
+      // but assume that it's working.
+      if (UrlHelper::isExternal($path)) {
+        $response->setStatusCode(200);
+        $response->setData(array(
+          'resolved' => $path,
+        ));
+      }
       return;
     }
     catch (MethodNotAllowedException $exception) {
