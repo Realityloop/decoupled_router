@@ -39,7 +39,8 @@ class RedirectPathTranslatorSubscriber extends RouterPathTranslatorSubscriber {
     // redirection levels before handing off to the route translator.
     $entity_type_manager = $this->container->get('entity_type.manager');
     $redirect_storage = $entity_type_manager->getStorage('redirect');
-    $destination = $event->getPath();
+    $destination = parse_url($event->getPath(), PHP_URL_PATH);
+    $original_query_string = parse_url($event->getPath(), PHP_URL_QUERY);
     $traced_urls = [];
     $redirect = NULL;
     $redirects_trace = [];
@@ -61,8 +62,8 @@ class RedirectPathTranslatorSubscriber extends RouterPathTranslatorSubscriber {
       $uri = $redirect->get('redirect_redirect')->uri;
       $url = Url::fromUri($uri)->toString(TRUE);
       $redirects_trace[] = [
-        'from' => $destination,
-        'to' => $url->getGeneratedUrl(),
+        'from' => $this->makeRedirectUrl($destination, $original_query_string),
+        'to' => $this->makeRedirectUrl($url->getGeneratedUrl(), $original_query_string),
         'status' => $redirect->getStatusCode(),
       ];
       $destination = $url->getGeneratedUrl();
@@ -82,7 +83,7 @@ class RedirectPathTranslatorSubscriber extends RouterPathTranslatorSubscriber {
       return;
     }
     // At this point we should be pointing to a system route or path alias.
-    $event->setPath($destination);
+    $event->setPath($this->makeRedirectUrl($destination, $original_query_string));
 
     // Now call the route level.
     parent::onPathTranslation($event);
@@ -102,6 +103,21 @@ class RedirectPathTranslatorSubscriber extends RouterPathTranslatorSubscriber {
       $response->addCacheableDependency($traced_url);
     });
     $event->stopPropagation();
+  }
+
+  /**
+   * Generates URL for the redirect, based on redirect module configurations.
+   *
+   * @param string $path URL to redirect to.
+   * @param string $query Original query string on the requested path.
+   *
+   * @return string Redirect URL to use.
+   */
+  private function makeRedirectUrl($path, $query) {
+    return $query && $this->configFactory->get('redirect.settings')
+      ->get('passthrough_querystring')
+      ? "{$path}?{$query}"
+      : $path;
   }
 
 }
