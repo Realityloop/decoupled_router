@@ -1,8 +1,8 @@
 name: Decoupled Router
 type: module
 description: 'Handles the awkwardness of routing in decoupled architectures.'
-core: 8.x
 package: Web services
+core_version_requirement: ^8.8 || ^9
 test_dependencies:
   - drupal:path
   - drupal:jsonapi
