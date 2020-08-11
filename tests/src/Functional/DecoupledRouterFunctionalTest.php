@@ -20,6 +20,11 @@ const DRUPAL_CI_BASE_URL = 'http://localhost/subdir';
 class DecoupledRouterFunctionalTest extends BrowserTestBase {
 
   /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'stark';
+
+  /**
    * The user.
    *
    * @var \Drupal\user\Entity\User
