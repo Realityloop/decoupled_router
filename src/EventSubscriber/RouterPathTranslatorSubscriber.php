@@ -10,7 +10,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityMalformedException;
 use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\Core\Path\AliasManagerInterface;
+use Drupal\path_alias\AliasManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\decoupled_router\PathTranslatorEvent;
@@ -68,7 +68,7 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
   /**
    * The alias manager
    *
-   * @var \Drupal\Core\Path\AliasManagerInterface
+   * @var \Drupal\path_alias\AliasManagerInterface
    */
   protected $aliasManager;
 
@@ -85,7 +85,7 @@ class RouterPathTranslatorSubscriber implements EventSubscriberInterface {
    *   The module handler.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The config factory
-   * @param \Drupal\Core\Path\AliasManagerInterface $aliasManager
+   * @param \Drupal\path_alias\AliasManagerInterface $aliasManager
    *   The alias manager
    */
   public function __construct(
